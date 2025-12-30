@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Shop {
+  id        String        @id @default(cuid())
+  name      String
+  createdAt DateTime     @default(now())
+
+  queue     QueueEntry[]
+}
+
+model QueueEntry {
+  id        String   @id @default(cuid())
+  name      String
+  position  Int
+  shopId    String
+  createdAt DateTime @default(now())
+
+  shop Shop @relation(fields: [shopId], references: [id])
+}
