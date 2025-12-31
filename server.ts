@@ -4,6 +4,7 @@ import { Server as SocketIOServer } from "socket.io";
 import next from "next";
 export let io: SocketIOServer;
 import queueRoutes from "./server/routes/queue.ts";
+import { registerSocket } from "./server/socket/emitter.ts";
 
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
@@ -22,6 +23,7 @@ async function startServer() {
             origin: "*",
         },
     });
+    registerSocket(io);
 
     io.on("connection", (socket) => {
         console.log("🟢 Socket connected:", socket.id);
