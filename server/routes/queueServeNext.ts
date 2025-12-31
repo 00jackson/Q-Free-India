@@ -26,12 +26,17 @@ router.post("/:shopId", async (req, res) => {
     }));
 
     // Notify all clients
-    emitQueueUpdate({
-      shopId,
-      type: "SERVE_NEXT",
-      served: name,
-      queue,
-    });
+    const AVG_SERVICE_MIN = 4;
+
+emitQueueUpdate({
+  shopId,
+  type: "SERVE_NEXT",
+  served: name,
+  queue: queue.map((q) => ({
+    ...q,
+    etaMinutes: (q.position - 1) * AVG_SERVICE_MIN,
+  })),
+});
 
     res.json({ served: name, queue });
   } catch (e) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSocket } from "@/lib/socket";
 
 const SHOP_ID = "test-shop";
@@ -8,13 +8,33 @@ const SHOP_ID = "test-shop";
 export default function HomePage() {
   const [name, setName] = useState("");
   const [updates, setUpdates] = useState<any[]>([]);
+  const [myToken, setMyToken] = useState<number | null>(null);
+  const [myEta, setMyEta] = useState<number | null>(null);
+  const myNameRef = useRef<string | null>(null);
 
   useEffect(() => {
     const socket = getSocket();
 
     socket.on("queue:update", (data) => {
-      if (data.shopId === SHOP_ID) {
+      if (data.shopId !== SHOP_ID) return;
+
+      if (data.type === "JOIN") {
         setUpdates((prev) => [...prev, data.entry]);
+
+        if (data.entry.name === myNameRef.current) {
+          setMyToken(data.entry.position);
+          setMyEta(data.etaMinutes);
+        }
+      }
+
+      if (data.type === "SERVE_NEXT") {
+        const updated = data.queue.find(
+          (q) => q.name === myNameRef.current
+        );
+        if (updated) {
+          setMyToken(updated.position);
+          setMyEta(updated.etaMinutes);
+        }
       }
     });
 
@@ -25,6 +45,7 @@ export default function HomePage() {
 
   async function joinQueue() {
     if (!name) return;
+    myNameRef.current = name;
 
     await fetch("http://localhost:3000/api/queue/join", {
       method: "POST",
@@ -58,6 +79,19 @@ export default function HomePage() {
         >
           Join Queue
         </button>
+        
+        {myToken && (
+          <div className="bg-gray-100 rounded-lg p-4 text-center">
+            <p className="text-sm text-gray-500">Your Token</p>
+            <p className="text-3xl font-bold">#{myToken}</p>
+
+            <p className="mt-2 text-sm text-gray-500">Estimated Wait</p>
+            <p className="text-lg font-semibold">
+              ~{myEta} minutes
+            </p>
+          </div>
+        )}
+
 
         <div className="pt-4">
           <h2 className="font-semibold mb-2">Live Queue Updates</h2>

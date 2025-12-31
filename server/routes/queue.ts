@@ -34,9 +34,14 @@ router.post("/join", async (req, res) => {
                 shopId,
             },
         });
+        const AVG_SERVICE_MIN = 4;
+        const etaMinutes = (entry.position - 1) * AVG_SERVICE_MIN;
+
         emitQueueUpdate({
             shopId,
+            type: "JOIN",
             entry,
+            etaMinutes,
         });
 
         res.json({ entry });

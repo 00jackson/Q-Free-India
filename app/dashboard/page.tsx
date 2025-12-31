@@ -6,6 +6,7 @@ import { getSocket } from "@/lib/socket";
 const SHOP_ID = "test-shop";
 
 type QueueEntry = {
+    etaMinutes: number;
     id: string;
     name: string;
     position: number;
@@ -30,6 +31,17 @@ export default function DashboardPage() {
         setQueue(data.queue);
     }
 
+    async function removeUser(name: string) {
+        await fetch(
+            `http://localhost:3000/api/queue/remove/${SHOP_ID}/remove`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name }),
+            }
+        );
+    }
+
     useEffect(() => {
         loadInitialQueue();
         const socket = getSocket();
@@ -41,6 +53,10 @@ export default function DashboardPage() {
                 setQueue(data.queue);
                 return;
             }
+            if (data.type === "REMOVE") {
+                setQueue(data.queue);
+                return;
+              }
 
             // Default: join event
             setQueue((prev) => {
@@ -91,13 +107,25 @@ export default function DashboardPage() {
                         <ul className="space-y-2">
                             {queue.map((entry) => (
                                 <li
-                                    key={entry.id}
-                                    className="flex justify-between border rounded-lg px-4 py-2"
+                                key={entry.id}
+                                className="flex justify-between items-center border rounded-lg px-4 py-2"
+                              >
+                                <div>
+                                  <div>
+                                    #{entry.position} — {entry.name}
+                                  </div>
+                                  <div className="text-xs text-gray-400">
+                                    ~{entry.etaMinutes ?? (entry.position - 1) * 4} min
+                                  </div>
+                                </div>
+                              
+                                <button
+                                  onClick={() => removeUser(entry.name)}
+                                  className="text-red-600 text-sm"
                                 >
-                                    <span>#{entry.position}</span>
-                                    <span>{entry.name}</span>
-                                    <span className="text-gray-400">Waiting</span>
-                                </li>
+                                  Remove
+                                </button>
+                              </li>
                             ))}
                         </ul>
                     )}
