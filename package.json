@@ -8,10 +8,11 @@
     "start": "NODE_ENV=production node dist/server.js"
   },
   "dependencies": {
-    "@prisma/client": "^7.2.0",
+    "@prisma/client": "^5.22.0",
     "express": "^5.2.1",
+    "ioredis": "^5.8.2",
     "next": "16.1.1",
-    "prisma": "^7.2.0",
+    "prisma": "^5.22.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "socket.io": "^4.8.3"
