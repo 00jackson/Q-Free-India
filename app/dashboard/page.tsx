@@ -1,43 +1,81 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { getSocket } from "@/lib/socket";
+
+const SHOP_ID = "test-shop";
+
+type QueueEntry = {
+  id: string;
+  name: string;
+  position: number;
+};
+
 export default function DashboardPage() {
-    return (
-      <main className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-5xl mx-auto space-y-6">
-          <h1 className="text-3xl font-bold">Queue Dashboard</h1>
-  
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white p-4 rounded-xl shadow">
-              <p className="text-gray-500">Current Token</p>
-              <p className="text-2xl font-bold">#12</p>
-            </div>
-  
-            <div className="bg-white p-4 rounded-xl shadow">
-              <p className="text-gray-500">People Waiting</p>
-              <p className="text-2xl font-bold">8</p>
-            </div>
-  
-            <div className="bg-white p-4 rounded-xl shadow">
-              <p className="text-gray-500">Estimated Wait</p>
-              <p className="text-2xl font-bold">25 min</p>
-            </div>
+  const [queue, setQueue] = useState<QueueEntry[]>([]);
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    socket.on("queue:update", (data) => {
+      if (data.shopId !== SHOP_ID) return;
+
+      setQueue((prev) => {
+        // Avoid duplicates
+        if (prev.find((e) => e.id === data.entry.id)) {
+          return prev;
+        }
+        return [...prev, data.entry].sort(
+          (a, b) => a.position - b.position
+        );
+      });
+    });
+
+    return () => {
+      socket.off("queue:update");
+    };
+  }, []);
+
+  return (
+    <main className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white p-4 rounded-xl shadow">
+            <p className="text-gray-500">People in Queue</p>
+            <p className="text-2xl font-bold">{queue.length}</p>
           </div>
-  
-          <div className="bg-white rounded-xl shadow p-4">
-            <h2 className="text-xl font-semibold mb-4">Queue List</h2>
-  
+
+          <div className="bg-white p-4 rounded-xl shadow">
+            <p className="text-gray-500">Current Token</p>
+            <p className="text-2xl font-bold">
+              {queue.length ? `#${queue[0].position}` : "—"}
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow p-4">
+          <h2 className="text-xl font-semibold mb-4">Live Queue</h2>
+
+          {queue.length === 0 ? (
+            <p className="text-gray-400">No one in queue</p>
+          ) : (
             <ul className="space-y-2">
-              {["Rahul", "Amit", "Sita", "John"].map((name, index) => (
+              {queue.map((entry) => (
                 <li
-                  key={index}
+                  key={entry.id}
                   className="flex justify-between border rounded-lg px-4 py-2"
                 >
-                  <span>#{index + 13}</span>
-                  <span>{name}</span>
+                  <span>#{entry.position}</span>
+                  <span>{entry.name}</span>
                   <span className="text-gray-400">Waiting</span>
                 </li>
               ))}
             </ul>
-          </div>
+          )}
         </div>
-      </main>
-    );
-  }
+      </div>
+    </main>
+  );
+}
