@@ -14,11 +14,18 @@ type QueueEntry = {
 export default function DashboardPage() {
     const [queue, setQueue] = useState<QueueEntry[]>([]);
 
+    async function serveNext() {
+        await fetch(
+            `http://localhost:3000/api/queue/serve-next/${SHOP_ID}`,
+            { method: "POST" }
+        );
+    }
+
     async function loadInitialQueue() {
         const res = await fetch(
             `http://localhost:3000/api/queue/state/${SHOP_ID}`,
             { cache: "no-store" }
-          );
+        );
         const data = await res.json();
         setQueue(data.queue);
     }
@@ -30,8 +37,13 @@ export default function DashboardPage() {
         socket.on("queue:update", (data) => {
             if (data.shopId !== SHOP_ID) return;
 
+            if (data.type === "SERVE_NEXT") {
+                setQueue(data.queue);
+                return;
+            }
+
+            // Default: join event
             setQueue((prev) => {
-                // Avoid duplicates
                 if (prev.find((e) => e.id === data.entry.id)) {
                     return prev;
                 }
@@ -50,7 +62,12 @@ export default function DashboardPage() {
         <main className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-4xl mx-auto space-y-6">
                 <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-
+                <button
+                    onClick={serveNext}
+                    className="bg-black text-white px-4 py-2 rounded-lg"
+                >
+                    Serve Next
+                </button>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white p-4 rounded-xl shadow">
                         <p className="text-gray-500">People in Queue</p>

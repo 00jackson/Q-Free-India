@@ -6,6 +6,7 @@ export let io: SocketIOServer;
 import queueRoutes from "./server/routes/queue.ts";
 import { registerSocket } from "./server/socket/emitter.ts";
 import queueStateRoutes from "./server/routes/queueState.ts";
+import serveNextRoutes from "./server/routes/queueServeNext.ts";
 
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
@@ -35,8 +36,10 @@ async function startServer() {
     });
 
     expressApp.use(express.json());
-    expressApp.use("/api/queue", queueRoutes);
+    
+    expressApp.use("/api/queue/serve-next", serveNextRoutes);
     expressApp.use("/api/queue/state", queueStateRoutes);
+    expressApp.use("/api/queue", queueRoutes);
     expressApp.use((req, res) => {
         return handle(req, res);
     });
