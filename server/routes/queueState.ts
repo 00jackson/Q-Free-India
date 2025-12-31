@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { redis } from "../lib/redis.ts";
+import { redis } from "../lib/redis.js";
 
 const router = Router();
 
@@ -10,7 +10,7 @@ router.get("/:shopId", async (req, res) => {
     const queueKey = `queue:${shopId}`;
     const names = await redis.lrange(queueKey, 0, -1);
 
-    const queue = names.map((name, index) => ({
+    const queue = names.map((name: string, index: number) => ({
       id: `${shopId}-${index}`,
       name,
       position: index + 1,

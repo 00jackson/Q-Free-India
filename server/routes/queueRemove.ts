@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { redis } from "../lib/redis.ts";
-import { emitQueueUpdate } from "../socket/emitter.ts";
+import { redis } from "../lib/redis.js";
+import { emitQueueUpdate } from "../socket/emitter.js";
 
 const router = Router();
 
@@ -22,7 +22,7 @@ router.post("/:shopId/remove", async (req, res) => {
 
     const AVG_SERVICE_MIN = 4;
 
-    const queue = names.map((n, i) => ({
+    const queue = names.map((n: string, i: number) => ({
       id: `${shopId}-${i}`,
       name: n,
       position: i + 1,

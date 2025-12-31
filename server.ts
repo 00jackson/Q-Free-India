@@ -3,14 +3,14 @@ import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import next from "next";
 export let io: SocketIOServer;
-import queueRoutes from "./server/routes/queue.ts";
-import { registerSocket } from "./server/socket/emitter.ts";
-import queueStateRoutes from "./server/routes/queueState.ts";
-import serveNextRoutes from "./server/routes/queueServeNext.ts";
-import removeRoutes from "./server/routes/queueRemove.ts";
+import queueRoutes from "./server/routes/queue.js";
+import { registerSocket } from "./server/socket/emitter.js";
+import queueStateRoutes from "./server/routes/queueState.js";
+import serveNextRoutes from "./server/routes/queueServeNext.js";
+import removeRoutes from "./server/routes/queueRemove.js";
 
 const dev = process.env.NODE_ENV !== "production";
-const app = next({ dev });
+const app = (next as unknown as (opts: { dev: boolean }) => any)({ dev });
 const handle = app.getRequestHandler();
 
 const PORT = 3000;
@@ -42,7 +42,10 @@ async function startServer() {
     expressApp.use("/api/queue/remove", removeRoutes);
     expressApp.use("/api/queue/state", queueStateRoutes);
     expressApp.use("/api/queue", queueRoutes);
-    expressApp.use((req, res) => {
+    expressApp.use((req, res, next) => {
+        if (req.url.startsWith("/api/")) {
+            return next();
+        }
         return handle(req, res);
     });
 

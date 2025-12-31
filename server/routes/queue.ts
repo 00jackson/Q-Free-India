@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { prisma } from "../lib/prisma.ts";
-import { redis } from "../lib/redis.ts";
-import { emitQueueUpdate } from "../socket/emitter.ts";
+import { prisma } from "../lib/prisma.js";
+import { redis } from "../lib/redis.js";
+import { emitQueueUpdate } from "../socket/emitter.js";
 const router = Router();
 
 router.post("/join", async (req, res) => {

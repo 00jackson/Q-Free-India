@@ -2,11 +2,12 @@
   "name": "q-india",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "ts-node server.ts",
-    "build": "next build",
-    "start": "NODE_ENV=production node dist/server.js"
-  },
+  "dev": "ts-node server.ts",
+  "build": "next build && tsc -p tsconfig.server.json",
+  "start": "NODE_ENV=production node dist/server.js"
+},
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "express": "^5.2.1",
