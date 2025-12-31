@@ -6,76 +6,86 @@ import { getSocket } from "@/lib/socket";
 const SHOP_ID = "test-shop";
 
 type QueueEntry = {
-  id: string;
-  name: string;
-  position: number;
+    id: string;
+    name: string;
+    position: number;
 };
 
 export default function DashboardPage() {
-  const [queue, setQueue] = useState<QueueEntry[]>([]);
+    const [queue, setQueue] = useState<QueueEntry[]>([]);
 
-  useEffect(() => {
-    const socket = getSocket();
+    async function loadInitialQueue() {
+        const res = await fetch(
+            `http://localhost:3000/api/queue/state/${SHOP_ID}`,
+            { cache: "no-store" }
+          );
+        const data = await res.json();
+        setQueue(data.queue);
+    }
 
-    socket.on("queue:update", (data) => {
-      if (data.shopId !== SHOP_ID) return;
+    useEffect(() => {
+        loadInitialQueue();
+        const socket = getSocket();
 
-      setQueue((prev) => {
-        // Avoid duplicates
-        if (prev.find((e) => e.id === data.entry.id)) {
-          return prev;
-        }
-        return [...prev, data.entry].sort(
-          (a, b) => a.position - b.position
-        );
-      });
-    });
+        socket.on("queue:update", (data) => {
+            if (data.shopId !== SHOP_ID) return;
 
-    return () => {
-      socket.off("queue:update");
-    };
-  }, []);
+            setQueue((prev) => {
+                // Avoid duplicates
+                if (prev.find((e) => e.id === data.entry.id)) {
+                    return prev;
+                }
+                return [...prev, data.entry].sort(
+                    (a, b) => a.position - b.position
+                );
+            });
+        });
 
-  return (
-    <main className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        return () => {
+            socket.off("queue:update");
+        };
+    }, []);
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white p-4 rounded-xl shadow">
-            <p className="text-gray-500">People in Queue</p>
-            <p className="text-2xl font-bold">{queue.length}</p>
-          </div>
+    return (
+        <main className="min-h-screen bg-gray-50 p-6">
+            <div className="max-w-4xl mx-auto space-y-6">
+                <h1 className="text-3xl font-bold">Admin Dashboard</h1>
 
-          <div className="bg-white p-4 rounded-xl shadow">
-            <p className="text-gray-500">Current Token</p>
-            <p className="text-2xl font-bold">
-              {queue.length ? `#${queue[0].position}` : "—"}
-            </p>
-          </div>
-        </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white p-4 rounded-xl shadow">
+                        <p className="text-gray-500">People in Queue</p>
+                        <p className="text-2xl font-bold">{queue.length}</p>
+                    </div>
 
-        <div className="bg-white rounded-xl shadow p-4">
-          <h2 className="text-xl font-semibold mb-4">Live Queue</h2>
+                    <div className="bg-white p-4 rounded-xl shadow">
+                        <p className="text-gray-500">Current Token</p>
+                        <p className="text-2xl font-bold">
+                            {queue.length ? `#${queue[0].position}` : "—"}
+                        </p>
+                    </div>
+                </div>
 
-          {queue.length === 0 ? (
-            <p className="text-gray-400">No one in queue</p>
-          ) : (
-            <ul className="space-y-2">
-              {queue.map((entry) => (
-                <li
-                  key={entry.id}
-                  className="flex justify-between border rounded-lg px-4 py-2"
-                >
-                  <span>#{entry.position}</span>
-                  <span>{entry.name}</span>
-                  <span className="text-gray-400">Waiting</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-    </main>
-  );
+                <div className="bg-white rounded-xl shadow p-4">
+                    <h2 className="text-xl font-semibold mb-4">Live Queue</h2>
+
+                    {queue.length === 0 ? (
+                        <p className="text-gray-400">No one in queue</p>
+                    ) : (
+                        <ul className="space-y-2">
+                            {queue.map((entry) => (
+                                <li
+                                    key={entry.id}
+                                    className="flex justify-between border rounded-lg px-4 py-2"
+                                >
+                                    <span>#{entry.position}</span>
+                                    <span>{entry.name}</span>
+                                    <span className="text-gray-400">Waiting</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            </div>
+        </main>
+    );
 }
