@@ -17,6 +17,7 @@ export default function DashboardPage() {
     const [queue, setQueue] = useState<QueueEntry[]>([]);
     const [isServing, setIsServing] = useState(false);
     const [lastAction, setLastAction] = useState<{type: string, time: Date} | null>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     async function serveNext() {
         setIsServing(true);
@@ -34,12 +35,17 @@ export default function DashboardPage() {
     }
 
     async function loadInitialQueue() {
-        const res = await fetch(
-            `http://localhost:3000/api/queue/state/${SHOP_ID}`,
-            { cache: "no-store" }
-        );
-        const data = await res.json();
-        setQueue(data.queue);
+        setIsRefreshing(true);
+        try {
+            const res = await fetch(
+                `http://localhost:3000/api/queue/state/${SHOP_ID}`,
+                { cache: "no-store" }
+            );
+            const data = await res.json();
+            setQueue(data.queue);
+        } finally {
+            setIsRefreshing(false);
+        }
     }
 
     async function removeUser(name: string) {
@@ -105,11 +111,12 @@ export default function DashboardPage() {
                             </p>
                         </div>
                         <button 
-                            onClick={() => loadInitialQueue()}
-                            className="mt-4 md:mt-0 bg-white/20 hover:bg-white/30 backdrop-blur-sm px-4 py-2 rounded-lg flex items-center transition-colors"
+                            onClick={loadInitialQueue}
+                            disabled={isRefreshing}
+                            className="mt-4 md:mt-0 bg-white/20 hover:bg-white/30 disabled:opacity-60 backdrop-blur-sm px-4 py-2 rounded-lg flex items-center transition-colors"
                         >
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Refresh
+                            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
+                            {isRefreshing ? "Refreshing..." : "Refresh"}
                         </button>
                     </div>
                 </div>
@@ -223,10 +230,17 @@ export default function DashboardPage() {
                             Manage your queue efficiently with instant actions
                         </p>
                         <div className="grid grid-cols-2 gap-3">
-                            <button className="bg-white border border-gray-300 hover:border-gray-400 rounded-xl p-3 text-sm font-medium transition-colors">
-                                Recall Previous
+                            <button
+                                onClick={loadInitialQueue}
+                                className="bg-white border border-gray-300 hover:border-gray-400 rounded-xl p-3 text-sm font-medium transition-colors"
+                            >
+                                Refresh Queue
                             </button>
-                            <button className="bg-white border border-gray-300 hover:border-gray-400 rounded-xl p-3 text-sm font-medium transition-colors">
+                            <button
+                                onClick={serveNext}
+                                disabled={queue.length === 0}
+                                className="bg-white border border-gray-300 hover:border-gray-400 disabled:opacity-50 rounded-xl p-3 text-sm font-medium transition-colors"
+                            >
                                 Skip Customer
                             </button>
                         </div>
