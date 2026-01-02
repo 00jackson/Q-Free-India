@@ -9,12 +9,16 @@ export default function AdminLoginPage() {
   const router = useRouter();
 
   async function submit() {
+    if (!pin) {
+      setError("Enter PIN");
+      return;
+    }
     const res = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         shopId: "test-shop",
-        pin,
+        pin: String(pin),
       }),
     });
 
@@ -34,6 +38,7 @@ export default function AdminLoginPage() {
           type="password"
           value={pin}
           onChange={(e) => setPin(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
           className="w-full p-2 text-black"
           placeholder="Enter PIN"
         />
