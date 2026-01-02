@@ -45,6 +45,7 @@ async function startServer() {
     });
     expressApp.use(cookieParser());
     expressApp.use("/api/admin", adminLoginRoutes)
+    expressApp.use("/api/admin", adminLoginRoutes)
 
     expressApp.use("/api/queue/serve-next", serveNextRoutes);
     expressApp.use("/api/queue/remove", removeRoutes);
