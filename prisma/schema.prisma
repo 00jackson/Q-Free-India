@@ -10,6 +10,7 @@ datasource db {
 model Shop {
   id        String        @id @default(cuid())
   name      String
+  adminPin  String
   createdAt DateTime     @default(now())
 
   queue     QueueEntry[]

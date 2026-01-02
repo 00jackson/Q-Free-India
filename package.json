@@ -4,12 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-  "dev": "ts-node server.ts",
-  "build": "next build && tsc -p tsconfig.server.json",
-  "start": "NODE_ENV=production node dist/server.js"
-},
+    "dev": "ts-node server.ts",
+    "build": "next build && tsc -p tsconfig.server.json",
+    "start": "NODE_ENV=production node dist/server.js"
+  },
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
     "ioredis": "^5.8.2",
     "lucide-react": "^0.562.0",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
     "@types/node": "^20",
     "@types/react": "^19",

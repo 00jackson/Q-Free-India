@@ -8,6 +8,8 @@ import { registerSocket } from "./server/socket/emitter.js";
 import queueStateRoutes from "./server/routes/queueState.js";
 import serveNextRoutes from "./server/routes/queueServeNext.js";
 import removeRoutes from "./server/routes/queueRemove.js";
+import adminLoginRoutes from "./server/routes/adminLogin.js"
+import cookieParser from "cookie-parser";
 
 const dev = process.env.NODE_ENV !== "production";
 const app = (next as unknown as (opts: { dev: boolean }) => any)({ dev });
@@ -37,15 +39,21 @@ async function startServer() {
     });
 
     expressApp.use(express.json());
-    
+    expressApp.use((req, _res, next) => {
+        console.log("➡️", req.method, req.url);
+        next();
+    });
+    expressApp.use(cookieParser());
+    expressApp.use("/api/admin", adminLoginRoutes)
+
     expressApp.use("/api/queue/serve-next", serveNextRoutes);
     expressApp.use("/api/queue/remove", removeRoutes);
     expressApp.use("/api/queue/state", queueStateRoutes);
     expressApp.use("/api/queue", queueRoutes);
-    expressApp.use((req, res, next) => {
-        if (req.url.startsWith("/api/")) {
-            return next();
-        }
+    expressApp.use((req, res) => {
+        // if (req.url.startsWith("/api/")) {
+        //     return next();
+        // }
         return handle(req, res);
     });
 

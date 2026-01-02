@@ -1,10 +1,14 @@
 import { Router } from "express";
 import { redis } from "../lib/redis.js";
 import { emitQueueUpdate } from "../socket/emitter.js";
+import { requireAdmin } from "../middleware/adminAuth.js";
 
+
+console.log("🔥 queueServeNext route loaded");
 const router = Router();
 
-router.post("/:shopId", async (req, res) => {
+router.post("/:shopId", requireAdmin, async (req, res) => {
+    console.log("🔥 HIT serve-next", req.params.shopId, req.cookies);
     try {
         const { shopId } = req.params;
         const queueKey = `queue:${shopId}`;

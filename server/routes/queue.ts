@@ -17,15 +17,15 @@ router.post("/join", async (req, res) => {
 
         await redis.rpush(queueKey, name);
 
-        // Ensure shop exists
-        await prisma.shop.upsert({
-            where: { id: shopId },
-            update: {},
-            create: {
-                id: shopId,
-                name: shopId, // placeholder, can be updated later
-            },
-        });
+        // // Ensure shop exists
+        // await prisma.shop.upsert({
+        //     where: { id: shopId },
+        //     update: {},
+        //     create: {
+        //         id: shopId,
+        //         name: shopId, // placeholder, can be updated later
+        //     },
+        // });
 
         const entry = await prisma.queueEntry.create({
             data: {

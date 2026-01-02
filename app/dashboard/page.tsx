@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { getSocket } from "@/lib/socket";
 import { Users, Ticket, Clock, ArrowRight, Trash2, AlertCircle, BarChart3, RefreshCw } from "lucide-react";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 const SHOP_ID = "test-shop";
 
@@ -13,11 +15,18 @@ type QueueEntry = {
     position: number;
 };
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
     const [queue, setQueue] = useState<QueueEntry[]>([]);
     const [isServing, setIsServing] = useState(false);
-    const [lastAction, setLastAction] = useState<{type: string, time: Date} | null>(null);
+    const [lastAction, setLastAction] = useState<{ type: string, time: Date } | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const cookieStore = cookies();
+    const adminAuth = (await cookieStore).get("admin_auth");
+
+    if (!adminAuth) {
+        redirect("/dashboard/login");
+    }
 
     async function serveNext() {
         setIsServing(true);
@@ -26,7 +35,7 @@ export default function DashboardPage() {
                 `http://localhost:3000/api/queue/serve-next/${SHOP_ID}`,
                 { method: "POST" }
             );
-            setLastAction({type: "SERVE_NEXT", time: new Date()});
+            setLastAction({ type: "SERVE_NEXT", time: new Date() });
         } catch (error) {
             console.error("Failed to serve next:", error);
         } finally {
@@ -57,7 +66,7 @@ export default function DashboardPage() {
                 body: JSON.stringify({ name }),
             }
         );
-        setLastAction({type: "REMOVE", time: new Date()});
+        setLastAction({ type: "REMOVE", time: new Date() });
     }
 
     useEffect(() => {
@@ -93,7 +102,7 @@ export default function DashboardPage() {
     }, []);
 
     // Calculate statistics
-    const averageWaitTime = queue.length > 0 
+    const averageWaitTime = queue.length > 0
         ? Math.round(queue.reduce((sum, entry) => sum + (entry.etaMinutes || (entry.position - 1) * 4), 0) / queue.length)
         : 0;
 
@@ -110,7 +119,7 @@ export default function DashboardPage() {
                                 Real-time management for Dr. Sharma Clinic
                             </p>
                         </div>
-                        <button 
+                        <button
                             onClick={loadInitialQueue}
                             disabled={isRefreshing}
                             className="mt-4 md:mt-0 bg-white/20 hover:bg-white/30 disabled:opacity-60 backdrop-blur-sm px-4 py-2 rounded-lg flex items-center transition-colors"
@@ -132,11 +141,10 @@ export default function DashboardPage() {
                         <button
                             onClick={serveNext}
                             disabled={isServing || queue.length === 0}
-                            className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] ${
-                                queue.length === 0 || isServing
+                            className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] ${queue.length === 0 || isServing
                                     ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                                     : "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg shadow-green-500/25"
-                            }`}
+                                }`}
                         >
                             {isServing ? (
                                 <span className="flex items-center justify-center">
@@ -151,7 +159,7 @@ export default function DashboardPage() {
                             )}
                         </button>
                         <p className="text-sm text-gray-500 mt-3">
-                            {queue.length > 0 
+                            {queue.length > 0
                                 ? `Next: #${queue[0]?.position} ${queue[0]?.name}`
                                 : "No customers waiting"}
                         </p>
@@ -170,7 +178,7 @@ export default function DashboardPage() {
                         <p className="text-gray-500 text-sm font-medium">People in Queue</p>
                         <p className="text-4xl font-bold text-gray-900 mt-1">{queue.length}</p>
                         <div className="h-2 bg-gray-100 rounded-full mt-3 overflow-hidden">
-                            <div 
+                            <div
                                 className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
                                 style={{ width: `${Math.min(100, queue.length * 10)}%` }}
                             ></div>
@@ -191,7 +199,7 @@ export default function DashboardPage() {
                             {queue.length ? `#${queue[0].position}` : "—"}
                         </p>
                         <p className="text-sm text-gray-500 mt-2">
-                            {queue.length > 1 
+                            {queue.length > 1
                                 ? `Next: #${queue[1]?.position}`
                                 : "No next customer"}
                         </p>
@@ -260,7 +268,7 @@ export default function DashboardPage() {
                             </h2>
                             {lastAction && (
                                 <div className="text-sm text-gray-500">
-                                    Last action: {lastAction.type.replace('_', ' ')} at {lastAction.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                    Last action: {lastAction.type.replace('_', ' ')} at {lastAction.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </div>
                             )}
                         </div>
@@ -277,22 +285,19 @@ export default function DashboardPage() {
                             </div>
                         ) : (
                             queue.map((entry, index) => (
-                                <div 
+                                <div
                                     key={entry.id}
-                                    className={`px-6 py-4 transition-all duration-200 hover:bg-gray-50 ${
-                                        index === 0 ? 'bg-blue-50/50 border-l-4 border-blue-500' : ''
-                                    }`}
+                                    className={`px-6 py-4 transition-all duration-200 hover:bg-gray-50 ${index === 0 ? 'bg-blue-50/50 border-l-4 border-blue-500' : ''
+                                        }`}
                                 >
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-4">
-                                            <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${
-                                                index === 0 
-                                                    ? 'bg-gradient-to-br from-blue-100 to-blue-200 border border-blue-200' 
+                                            <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${index === 0
+                                                    ? 'bg-gradient-to-br from-blue-100 to-blue-200 border border-blue-200'
                                                     : 'bg-gray-100'
-                                            }`}>
-                                                <span className={`text-lg font-bold ${
-                                                    index === 0 ? 'text-blue-700' : 'text-gray-700'
                                                 }`}>
+                                                <span className={`text-lg font-bold ${index === 0 ? 'text-blue-700' : 'text-gray-700'
+                                                    }`}>
                                                     #{entry.position}
                                                 </span>
                                             </div>
@@ -334,7 +339,7 @@ export default function DashboardPage() {
                                     Real-time updates active
                                 </div>
                                 <div className="text-right">
-                                    <span className="font-medium">Total wait time:</span> 
+                                    <span className="font-medium">Total wait time:</span>
                                     <span className="ml-2">{queue.reduce((sum, entry) => sum + (entry.etaMinutes || (entry.position - 1) * 4), 0)} minutes</span>
                                 </div>
                             </div>
